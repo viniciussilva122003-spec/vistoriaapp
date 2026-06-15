@@ -1,0 +1,1221 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, user-scalable=no">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="VistoriaApp">
+<meta name="theme-color" content="#0a0a0f">
+<link rel="manifest" href="manifest.json">
+<title>VistoriaApp ⚡</title>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@3.31.0/tabler-icons.min.css">
+
+<style>
+/* ── Reset & Base ─────────────────────────────────────────────────────── */
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
+html, body { height: 100%; overflow: hidden; background: #0a0a0f; font-family: -apple-system, 'SF Pro Display', 'Helvetica Neue', sans-serif; color: #e8e8f0; }
+
+/* ── App Shell ────────────────────────────────────────────────────────── */
+#app { height: 100dvh; display: flex; flex-direction: column; overflow: hidden; }
+.screen { display: none; flex-direction: column; flex: 1; height: 100%; }
+.screen.active { display: flex; }
+
+/* ── Safe areas ───────────────────────────────────────────────────────── */
+.safe-top { padding-top: env(safe-area-inset-top, 44px); background: #0a0a0f; }
+.safe-bottom { padding-bottom: env(safe-area-inset-bottom, 20px); }
+
+/* ── Navigation bar ───────────────────────────────────────────────────── */
+.nav {
+  display: flex; align-items: center; gap: 8px;
+  padding: 12px 16px 12px;
+  border-bottom: 0.5px solid #1e1e2a;
+  background: rgba(10,10,15,0.95);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  flex-shrink: 0;
+}
+.nav-title { flex: 1; font-size: 17px; font-weight: 600; color: #fff; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.nav-back { background: none; border: none; color: #5b9cf6; font-size: 15px; cursor: pointer; display: flex; align-items: center; gap: 3px; padding: 4px 0; font-family: inherit; flex-shrink: 0; }
+.nav-action { background: none; border: none; color: #5b9cf6; font-size: 15px; font-weight: 500; cursor: pointer; padding: 4px 0; font-family: inherit; display: flex; align-items: center; gap: 4px; flex-shrink: 0; }
+.nav-icon-btn { background: none; border: none; color: #5b9cf6; cursor: pointer; padding: 4px; display: flex; align-items: center; justify-content: center; border-radius: 8px; }
+
+/* ── Scroll area ──────────────────────────────────────────────────────── */
+.scroll { flex: 1; overflow-y: auto; -webkit-overflow-scrolling: touch; padding: 12px 14px 24px; }
+.scroll::-webkit-scrollbar { display: none; }
+
+/* ── Section header ───────────────────────────────────────────────────── */
+.sec-hdr { font-size: 12px; font-weight: 600; color: #444455; text-transform: uppercase; letter-spacing: 0.7px; padding: 16px 0 8px; }
+.sec-hdr:first-child { padding-top: 4px; }
+
+/* ── Cards ────────────────────────────────────────────────────────────── */
+.card {
+  background: #13131c; border-radius: 14px;
+  border: 0.5px solid #1e1e2a; padding: 13px 14px;
+  margin-bottom: 10px; cursor: pointer;
+  transition: border-color 0.15s, transform 0.1s;
+  -webkit-user-select: none;
+}
+.card:active { border-color: #5b9cf6; transform: scale(0.98); }
+.card.no-tap { cursor: default; }
+.card.no-tap:active { transform: none; border-color: #1e1e2a; }
+.card-row { display: flex; align-items: center; gap: 10px; }
+.card-icon { width: 42px; height: 42px; border-radius: 11px; display: flex; align-items: center; justify-content: center; font-size: 20px; flex-shrink: 0; }
+.card-body { flex: 1; min-width: 0; }
+.card-label { font-size: 15px; font-weight: 500; color: #e8e8f0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.card-sub { font-size: 12px; color: #666676; margin-top: 2px; }
+.card-right { text-align: right; flex-shrink: 0; }
+.card-arrow { color: #3a3a50; }
+
+/* ── Tags ─────────────────────────────────────────────────────────────── */
+.tag { display: inline-flex; align-items: center; padding: 3px 9px; border-radius: 6px; font-size: 11px; font-weight: 600; }
+.tag-blue  { background: #142040; color: #5b9cf6; }
+.tag-green { background: #0d2b1e; color: #3dcf8e; }
+.tag-amber { background: #2a1e00; color: #e9a430; }
+.tag-red   { background: #2b1010; color: #f06060; }
+.tag-purple{ background: #1a1030; color: #9b7ef0; }
+
+/* ── Metric grid ──────────────────────────────────────────────────────── */
+.metric-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-bottom: 10px; }
+.metric-card { background: #13131c; border-radius: 12px; border: 0.5px solid #1e1e2a; padding: 11px 13px; }
+.metric-label { font-size: 11px; color: #555565; margin-bottom: 3px; }
+.metric-value { font-size: 22px; font-weight: 600; color: #e8e8f0; line-height: 1; }
+.metric-unit { font-size: 12px; color: #555565; font-weight: 400; }
+
+/* ── Progress bar ─────────────────────────────────────────────────────── */
+.prog-wrap { margin-top: 8px; }
+.prog-label { display: flex; justify-content: space-between; font-size: 11px; color: #666676; margin-bottom: 4px; }
+.prog-bar { height: 5px; background: #1e1e2a; border-radius: 3px; overflow: hidden; }
+.prog-fill { height: 100%; border-radius: 3px; transition: width 0.6s ease; }
+.prog-green  { background: #3dcf8e; }
+.prog-amber  { background: #e9a430; }
+.prog-red    { background: #f06060; }
+.prog-blue   { background: #5b9cf6; }
+
+/* ── Alert banners ────────────────────────────────────────────────────── */
+.alert { display: flex; align-items: flex-start; gap: 9px; padding: 10px 12px; border-radius: 10px; margin-bottom: 8px; }
+.alert-warn   { background: #2a1e00; border: 0.5px solid rgba(233,164,48,0.25); }
+.alert-danger { background: #2b1010; border: 0.5px solid rgba(240,96,96,0.25); }
+.alert-info   { background: #0e1a30; border: 0.5px solid rgba(91,156,246,0.25); }
+.alert-icon { font-size: 16px; margin-top: 1px; flex-shrink: 0; }
+.alert-body { flex: 1; }
+.alert-title { font-size: 13px; font-weight: 600; margin-bottom: 2px; }
+.alert-text  { font-size: 12px; color: #a0a0b0; line-height: 1.4; }
+
+/* ── Forms ────────────────────────────────────────────────────────────── */
+.field { margin-bottom: 14px; }
+.field label { display: block; font-size: 12px; font-weight: 500; color: #555565; margin-bottom: 6px; text-transform: uppercase; letter-spacing: 0.4px; }
+.field input, .field select, .field textarea {
+  width: 100%; background: #13131c; border: 0.5px solid #2a2a3a;
+  border-radius: 11px; padding: 11px 13px; color: #e8e8f0;
+  font-size: 15px; outline: none; font-family: inherit;
+  -webkit-appearance: none; appearance: none;
+  transition: border-color 0.15s;
+}
+.field input:focus, .field select:focus, .field textarea:focus { border-color: #5b9cf6; }
+.field input::placeholder { color: #2a2a3a; }
+.field textarea { resize: none; height: 80px; }
+.field-row { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+.field-row3 { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 8px; }
+.calc-result { margin-top: 8px; background: #0e1820; border: 0.5px solid rgba(91,156,246,0.3); border-radius: 10px; padding: 10px 12px; }
+.calc-row { display: flex; justify-content: space-between; align-items: center; margin-bottom: 4px; }
+.calc-row:last-child { margin-bottom: 0; }
+.calc-lbl { font-size: 12px; color: #555565; }
+.calc-val { font-size: 13px; font-weight: 600; color: #5b9cf6; }
+
+/* ── Gauge ring ───────────────────────────────────────────────────────── */
+.gauge-wrap { display: flex; justify-content: center; padding: 6px 0 12px; }
+
+/* ── Phase bars ───────────────────────────────────────────────────────── */
+.phase-row { display: grid; grid-template-columns: 28px 1fr 60px; gap: 8px; align-items: center; margin-bottom: 10px; }
+.phase-badge { width: 28px; height: 28px; border-radius: 8px; background: #1a2030; display: flex; align-items: center; justify-content: center; font-size: 12px; font-weight: 700; color: #5b9cf6; }
+
+/* ── FAB ──────────────────────────────────────────────────────────────── */
+.fab { position: sticky; bottom: 0; padding: 12px 0 4px; display: flex; justify-content: center; background: linear-gradient(transparent, #0a0a0f 50%); pointer-events: none; }
+.fab-btn { pointer-events: all; background: #5b9cf6; color: #fff; border: none; border-radius: 22px; padding: 13px 28px; font-size: 15px; font-weight: 600; cursor: pointer; display: flex; align-items: center; gap: 7px; box-shadow: 0 6px 24px rgba(91,156,246,0.4); font-family: inherit; -webkit-tap-highlight-color: transparent; transition: transform 0.1s; }
+.fab-btn:active { transform: scale(0.96); }
+
+/* ── Tab bar ──────────────────────────────────────────────────────────── */
+.tab-bar { display: flex; border-top: 0.5px solid #1e1e2a; background: rgba(10,10,15,0.97); backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px); padding: 8px 0; padding-bottom: max(8px, env(safe-area-inset-bottom)); flex-shrink: 0; }
+.tab-item { flex: 1; display: flex; flex-direction: column; align-items: center; gap: 3px; cursor: pointer; opacity: 0.35; transition: opacity 0.15s; padding: 2px 0; }
+.tab-item.active { opacity: 1; }
+.tab-item i { font-size: 24px; color: #5b9cf6; }
+.tab-item span { font-size: 10px; color: #5b9cf6; font-weight: 600; }
+
+/* ── Empty state ──────────────────────────────────────────────────────── */
+.empty { display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 60px 30px; text-align: center; gap: 12px; }
+.empty-icon { font-size: 52px; opacity: 0.2; }
+.empty-title { font-size: 17px; font-weight: 600; color: #555565; }
+.empty-sub { font-size: 14px; color: #333345; }
+
+/* ── Circuit table ────────────────────────────────────────────────────── */
+.table-row { display: grid; gap: 6px; padding: 9px 0; border-bottom: 0.5px solid #1a1a26; align-items: center; }
+.table-row:last-child { border-bottom: none; }
+.t-name { font-size: 13px; color: #d0d0de; }
+.t-val  { font-size: 12px; color: #888898; text-align: right; }
+.t-stat { text-align: center; }
+
+/* ── Toast ────────────────────────────────────────────────────────────── */
+#toast { position: fixed; bottom: 90px; left: 50%; transform: translateX(-50%) translateY(20px); background: #1e1e2e; border: 0.5px solid #2a2a3a; color: #e8e8f0; font-size: 14px; padding: 10px 20px; border-radius: 20px; opacity: 0; transition: opacity 0.25s, transform 0.25s; z-index: 999; white-space: nowrap; pointer-events: none; }
+#toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
+
+/* ── Modal ────────────────────────────────────────────────────────────── */
+.modal-overlay { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.7); z-index: 100; align-items: flex-end; }
+.modal-overlay.open { display: flex; }
+.modal-sheet { background: #13131c; border-radius: 20px 20px 0 0; padding: 16px 16px max(20px, env(safe-area-inset-bottom)); width: 100%; max-height: 85dvh; overflow-y: auto; }
+.modal-handle { width: 36px; height: 4px; background: #2a2a3a; border-radius: 2px; margin: 0 auto 16px; }
+.modal-title { font-size: 17px; font-weight: 600; margin-bottom: 16px; }
+.modal-actions { display: flex; gap: 10px; margin-top: 16px; }
+.btn { flex: 1; padding: 13px; border-radius: 12px; font-size: 15px; font-weight: 600; border: none; cursor: pointer; font-family: inherit; }
+.btn-primary { background: #5b9cf6; color: #fff; }
+.btn-danger  { background: #2b1010; color: #f06060; border: 0.5px solid rgba(240,96,96,0.3); }
+.btn-ghost   { background: #1e1e2a; color: #888898; }
+
+/* ── Utilities ────────────────────────────────────────────────────────── */
+.divider { height: 0.5px; background: #1e1e2a; margin: 4px 0 12px; }
+.row-between { display: flex; justify-content: space-between; align-items: center; }
+.text-muted { color: #555565; font-size: 13px; }
+.text-danger { color: #f06060; }
+.text-amber  { color: #e9a430; }
+.text-green  { color: #3dcf8e; }
+.text-blue   { color: #5b9cf6; }
+.mt-8 { margin-top: 8px; }
+.mb-0 { margin-bottom: 0; }
+</style>
+</head>
+<body>
+<div id="app">
+
+<!-- ═══════════════════════════════════════════════════════════
+     SCREEN: HOME
+═══════════════════════════════════════════════════════════ -->
+<div class="screen active" id="s-home">
+  <div class="safe-top">
+    <div class="nav">
+      <div class="nav-title">⚡ VistoriaApp</div>
+      <button class="nav-icon-btn" onclick="openModal('modal-novo-proj')"><i class="ti ti-plus" style="font-size:22px"></i></button>
+    </div>
+  </div>
+  <div class="scroll" id="home-scroll">
+    <div class="sec-hdr">Projetos recentes</div>
+    <div id="proj-list">
+      <div class="empty">
+        <div class="empty-icon">📁</div>
+        <div class="empty-title">Nenhum projeto ainda</div>
+        <div class="empty-sub">Toque em + para criar seu primeiro projeto</div>
+      </div>
+    </div>
+    <div id="home-stats" style="display:none">
+      <div class="sec-hdr">Resumo</div>
+      <div class="metric-grid" id="home-metrics"></div>
+    </div>
+  </div>
+  <div class="tab-bar">
+    <div class="tab-item active" onclick="goTab('s-home',0)"><i class="ti ti-home-2"></i><span>Início</span></div>
+    <div class="tab-item" onclick="goTab('s-home',0)"><i class="ti ti-folder"></i><span>Projetos</span></div>
+    <div class="tab-item" onclick="showAlert('Selecione um projeto primeiro')"><i class="ti ti-file-description"></i><span>Relatório</span></div>
+    <div class="tab-item" onclick="showSettings()"><i class="ti ti-settings"></i><span>Config.</span></div>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════════════════════════
+     SCREEN: PROJETO (dashboard do projeto)
+═══════════════════════════════════════════════════════════ -->
+<div class="screen" id="s-projeto">
+  <div class="safe-top">
+    <div class="nav">
+      <button class="nav-back" onclick="go('s-home')"><i class="ti ti-chevron-left"></i> Projetos</button>
+      <div class="nav-title" id="proj-nav-title">Projeto</div>
+      <button class="nav-icon-btn" onclick="openRelatorio()"><i class="ti ti-file-export" style="font-size:20px"></i></button>
+    </div>
+  </div>
+  <div class="scroll">
+    <div class="text-muted" id="proj-subtitle" style="margin-bottom:12px;font-size:13px;"></div>
+    <div class="metric-grid" id="proj-metrics"></div>
+    <div id="proj-alerts"></div>
+    <div class="sec-hdr">Quadros elétricos</div>
+    <div id="quad-list"></div>
+    <div class="fab">
+      <button class="fab-btn" onclick="openModal('modal-novo-quad')"><i class="ti ti-plus"></i> Novo quadro</button>
+    </div>
+  </div>
+  <div class="tab-bar">
+    <div class="tab-item" onclick="go('s-home')"><i class="ti ti-home-2"></i><span>Início</span></div>
+    <div class="tab-item active"><i class="ti ti-folder"></i><span>Projeto</span></div>
+    <div class="tab-item" onclick="openRelatorio()"><i class="ti ti-file-description"></i><span>Relatório</span></div>
+    <div class="tab-item" onclick="showSettings()"><i class="ti ti-settings"></i><span>Config.</span></div>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════════════════════════
+     SCREEN: QUADRO (detalhe do quadro)
+═══════════════════════════════════════════════════════════ -->
+<div class="screen" id="s-quadro">
+  <div class="safe-top">
+    <div class="nav">
+      <button class="nav-back" onclick="go('s-projeto')"><i class="ti ti-chevron-left"></i> Projeto</button>
+      <div class="nav-title" id="quad-nav-title">Quadro</div>
+      <button class="nav-icon-btn" onclick="deleteCurrentQuadro()"><i class="ti ti-trash" style="font-size:18px;color:#f06060"></i></button>
+    </div>
+  </div>
+  <div class="scroll">
+    <div class="gauge-wrap"><svg id="quad-gauge" width="140" height="140" viewBox="0 0 140 140"></svg></div>
+    <div class="metric-grid" id="quad-metrics"></div>
+    <div id="quad-alerts"></div>
+    <div class="sec-hdr">Correntes por fase</div>
+    <div class="card no-tap" id="quad-phases"></div>
+    <div class="sec-hdr">Consumidores</div>
+    <div id="cons-list"></div>
+    <div class="fab">
+      <button class="fab-btn" onclick="openModal('modal-novo-cons')"><i class="ti ti-plus"></i> Adicionar consumidor</button>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════════════════════════
+     SCREEN: CONSUMIDOR (detalhe)
+═══════════════════════════════════════════════════════════ -->
+<div class="screen" id="s-consumidor">
+  <div class="safe-top">
+    <div class="nav">
+      <button class="nav-back" onclick="go('s-quadro')"><i class="ti ti-chevron-left"></i> Quadro</button>
+      <div class="nav-title" id="cons-nav-title">Consumidor</div>
+      <button class="nav-icon-btn" onclick="deleteCurrentCons()"><i class="ti ti-trash" style="font-size:18px;color:#f06060"></i></button>
+    </div>
+  </div>
+  <div class="scroll">
+    <div class="metric-grid" id="cons-metrics"></div>
+    <div class="sec-hdr">Cálculo automático NBR 5410</div>
+    <div class="card no-tap" id="cons-calc"></div>
+    <div id="cons-alerts-detail"></div>
+    <div class="sec-hdr">Informações</div>
+    <div class="card no-tap" id="cons-info"></div>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════════════════════════
+     SCREEN: RELATÓRIO
+═══════════════════════════════════════════════════════════ -->
+<div class="screen" id="s-relatorio">
+  <div class="safe-top">
+    <div class="nav">
+      <button class="nav-back" onclick="go('s-projeto')"><i class="ti ti-chevron-left"></i> Projeto</button>
+      <div class="nav-title">Relatório</div>
+    </div>
+  </div>
+  <div class="scroll">
+    <div id="rel-header"></div>
+    <div class="sec-hdr">Tabela de cargas</div>
+    <div id="rel-tabela"></div>
+    <div class="sec-hdr">Alertas do laudo</div>
+    <div id="rel-alertas"></div>
+    <div class="sec-hdr">Exportar</div>
+    <div class="card" onclick="exportCSV()">
+      <div class="card-row">
+        <div class="card-icon" style="background:#0d2b1e"><i class="ti ti-file-spreadsheet" style="color:#3dcf8e;font-size:22px"></i></div>
+        <div class="card-body"><div class="card-label">Exportar CSV</div><div class="card-sub">Tabela de cargas · abre no Excel / Google Sheets</div></div>
+        <div class="card-arrow"><i class="ti ti-download" style="color:#5b9cf6"></i></div>
+      </div>
+    </div>
+    <div class="card" onclick="exportTXT()">
+      <div class="card-row">
+        <div class="card-icon" style="background:#1a0f1e"><i class="ti ti-file-text" style="color:#9b7ef0;font-size:22px"></i></div>
+        <div class="card-body"><div class="card-label">Memorial de vistoria</div><div class="card-sub">Texto completo para copiar / enviar</div></div>
+        <div class="card-arrow"><i class="ti ti-download" style="color:#5b9cf6"></i></div>
+      </div>
+    </div>
+  </div>
+  <div class="tab-bar">
+    <div class="tab-item" onclick="go('s-home')"><i class="ti ti-home-2"></i><span>Início</span></div>
+    <div class="tab-item" onclick="go('s-projeto')"><i class="ti ti-folder"></i><span>Projeto</span></div>
+    <div class="tab-item active"><i class="ti ti-file-description"></i><span>Relatório</span></div>
+    <div class="tab-item" onclick="showSettings()"><i class="ti ti-settings"></i><span>Config.</span></div>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════════════════════════
+     MODALS
+═══════════════════════════════════════════════════════════ -->
+
+<!-- Modal: Novo Projeto -->
+<div class="modal-overlay" id="modal-novo-proj" onclick="closeModalOnBg(event,'modal-novo-proj')">
+  <div class="modal-sheet">
+    <div class="modal-handle"></div>
+    <div class="modal-title">Novo projeto</div>
+    <div class="field"><label>Cliente</label><input id="np-cliente" type="text" placeholder="Ex: Vivo, Claro, TIM…" autocomplete="off"></div>
+    <div class="field"><label>Site / Local</label><input id="np-site" type="text" placeholder="Ex: Santo André 01" autocomplete="off"></div>
+    <div class="field"><label>Nome do projeto</label><input id="np-nome" type="text" placeholder="Ex: Ampliação Elétrica" autocomplete="off"></div>
+    <div class="field-row">
+      <div class="field mb-0"><label>Data</label><input id="np-data" type="date"></div>
+      <div class="field mb-0"><label>Técnico</label><input id="np-tec" type="text" placeholder="Nome" autocomplete="off"></div>
+    </div>
+    <div class="field" style="margin-top:14px"><label>Tipo de vistoria</label>
+      <select id="np-tipo">
+        <option>Vistoria inicial</option>
+        <option>Vistoria preventiva</option>
+        <option>Retrofit / Ampliação</option>
+        <option>Comissionamento</option>
+        <option>Emergência</option>
+      </select>
+    </div>
+    <div class="field"><label>Observações</label><textarea id="np-obs" placeholder="Informações adicionais…"></textarea></div>
+    <div class="modal-actions">
+      <button class="btn btn-ghost" onclick="closeModal('modal-novo-proj')">Cancelar</button>
+      <button class="btn btn-primary" onclick="salvarProjeto()">Criar projeto</button>
+    </div>
+  </div>
+</div>
+
+<!-- Modal: Novo Quadro -->
+<div class="modal-overlay" id="modal-novo-quad" onclick="closeModalOnBg(event,'modal-novo-quad')">
+  <div class="modal-sheet">
+    <div class="modal-handle"></div>
+    <div class="modal-title">Novo quadro elétrico</div>
+    <div class="field"><label>Nome do quadro</label><input id="nq-nome" type="text" placeholder="Ex: QDG QMC, QDCA Vivo…" autocomplete="off"></div>
+    <div class="field-row">
+      <div class="field mb-0"><label>Tipo</label>
+        <select id="nq-tipo">
+          <option>QDG</option><option>QDCA</option><option>QDL</option>
+          <option>QTA</option><option>QGBT</option><option>QF</option><option>Outro</option>
+        </select>
+      </div>
+      <div class="field mb-0"><label>Fases</label>
+        <select id="nq-fases" onchange="updateQuadFields()">
+          <option>Monofásico</option><option>Bifásico</option><option value="Trifásico" selected>Trifásico</option>
+        </select>
+      </div>
+    </div>
+    <div class="field-row" style="margin-top:14px">
+      <div class="field mb-0"><label>Tensão F+N (V)</label><input id="nq-vfn" type="number" placeholder="127" inputmode="decimal"></div>
+      <div class="field mb-0"><label>Tensão F+F (V)</label><input id="nq-vff" type="number" placeholder="220" inputmode="decimal"></div>
+    </div>
+    <div class="field-row" style="margin-top:14px">
+      <div class="field mb-0"><label>DJ Geral (A)</label><input id="nq-dj" type="number" placeholder="63" inputmode="decimal"></div>
+      <div class="field mb-0"><label>I entrada (A)</label><input id="nq-ient" type="number" placeholder="28,9" inputmode="decimal" oninput="calcQuad()"></div>
+    </div>
+    <div id="nq-fase-fields" style="margin-top:14px">
+      <div class="field-row">
+        <div class="field mb-0"><label>Fase R (A)</label><input id="nq-ir" type="number" placeholder="0" inputmode="decimal" oninput="calcQuad()"></div>
+        <div class="field mb-0"><label>Fase S (A)</label><input id="nq-is" type="number" placeholder="0" inputmode="decimal" oninput="calcQuad()"></div>
+      </div>
+      <div class="field-row" style="margin-top:10px">
+        <div class="field mb-0"><label>Fase T (A)</label><input id="nq-it" type="number" placeholder="0" inputmode="decimal" oninput="calcQuad()"></div>
+        <div class="field mb-0"><label>Neutro (A)</label><input id="nq-in" type="number" placeholder="0" inputmode="decimal" oninput="calcQuad()"></div>
+      </div>
+    </div>
+    <div class="calc-result mt-8" id="nq-calc" style="display:none">
+      <div class="calc-row"><span class="calc-lbl">Carga estimada</span><span class="calc-val" id="nq-calc-kva">—</span></div>
+      <div class="calc-row"><span class="calc-lbl">Ocupação DJ</span><span class="calc-val" id="nq-calc-pct">—</span></div>
+    </div>
+    <div class="field" style="margin-top:14px"><label>Observações</label><textarea id="nq-obs" placeholder="Condição do quadro, anomalias…"></textarea></div>
+    <div class="modal-actions">
+      <button class="btn btn-ghost" onclick="closeModal('modal-novo-quad')">Cancelar</button>
+      <button class="btn btn-primary" onclick="salvarQuadro()">Salvar quadro</button>
+    </div>
+  </div>
+</div>
+
+<!-- Modal: Novo Consumidor -->
+<div class="modal-overlay" id="modal-novo-cons" onclick="closeModalOnBg(event,'modal-novo-cons')">
+  <div class="modal-sheet">
+    <div class="modal-handle"></div>
+    <div class="modal-title">Novo consumidor</div>
+    <div class="field"><label>Nome / Descrição</label><input id="nc-nome" type="text" placeholder="Ex: Retificador, AC, Nobreak…" autocomplete="off"></div>
+    <div class="field"><label>Tipo de equipamento</label>
+      <select id="nc-tipo">
+        <option>Retificador / Telco</option><option>Ar-condicionado</option>
+        <option>Nobreak / UPS</option><option>Banco de baterias</option>
+        <option>Iluminação</option><option>Tomadas</option>
+        <option>Servidor</option><option>Outro</option>
+      </select>
+    </div>
+    <div class="field-row">
+      <div class="field mb-0"><label>Fases</label>
+        <select id="nc-fases" onchange="calcCons()">
+          <option>Monofásico</option><option>Bifásico</option><option selected>Trifásico</option>
+        </select>
+      </div>
+      <div class="field mb-0"><label>Tensão (V)</label><input id="nc-tensao" type="number" placeholder="220" inputmode="decimal" oninput="calcCons()"></div>
+    </div>
+    <div class="field-row" style="margin-top:14px">
+      <div class="field mb-0"><label>Potência (VA)</label><input id="nc-pot" type="number" placeholder="4400" inputmode="decimal" oninput="calcCons()"></div>
+      <div class="field mb-0"><label>I medida (A)</label><input id="nc-imed" type="number" placeholder="10,0" inputmode="decimal" oninput="calcCons()"></div>
+    </div>
+    <div class="field-row" style="margin-top:14px">
+      <div class="field mb-0"><label>DJ proteção (A)</label><input id="nc-dj" type="number" placeholder="16" inputmode="decimal" oninput="calcCons()"></div>
+      <div class="field mb-0"><label>Fator de demanda</label><input id="nc-fd" type="number" placeholder="1.0" value="1" inputmode="decimal" oninput="calcCons()"></div>
+    </div>
+    <div class="calc-result mt-8" id="nc-calc" style="display:none">
+      <div class="calc-row"><span class="calc-lbl">Carga instalada</span><span class="calc-val" id="nc-calc-kva">—</span></div>
+      <div class="calc-row"><span class="calc-lbl">I de projeto (NBR 5410)</span><span class="calc-val" id="nc-calc-ip">—</span></div>
+      <div class="calc-row"><span class="calc-lbl">80% do disjuntor</span><span class="calc-val" id="nc-calc-80">—</span></div>
+      <div class="calc-row"><span class="calc-lbl">Status</span><span id="nc-calc-status">—</span></div>
+    </div>
+    <div class="field" style="margin-top:14px"><label>Observações</label><textarea id="nc-obs" placeholder="Estado, anomalias, modelo do equipamento…"></textarea></div>
+    <div class="modal-actions">
+      <button class="btn btn-ghost" onclick="closeModal('modal-novo-cons')">Cancelar</button>
+      <button class="btn btn-primary" onclick="salvarConsumidor()">Salvar</button>
+    </div>
+  </div>
+</div>
+
+<!-- Toast -->
+<div id="toast"></div>
+
+<script>
+'use strict';
+
+// ══════════════════════════════════════════════════════════════════════════
+// DATABASE (IndexedDB)
+// ══════════════════════════════════════════════════════════════════════════
+let db;
+const DB_NAME = 'vistoriaapp', DB_VER = 1;
+
+function initDB() {
+  return new Promise((res, rej) => {
+    const req = indexedDB.open(DB_NAME, DB_VER);
+    req.onupgradeneeded = e => {
+      const d = e.target.result;
+      if (!d.objectStoreNames.contains('projetos'))
+        d.createObjectStore('projetos', { keyPath: 'id' });
+      if (!d.objectStoreNames.contains('quadros')) {
+        const qs = d.createObjectStore('quadros', { keyPath: 'id' });
+        qs.createIndex('projetoId', 'projetoId', { unique: false });
+      }
+      if (!d.objectStoreNames.contains('consumidores')) {
+        const cs = d.createObjectStore('consumidores', { keyPath: 'id' });
+        cs.createIndex('quadroId', 'quadroId', { unique: false });
+      }
+    };
+    req.onsuccess = e => { db = e.target.result; res(db); };
+    req.onerror = () => rej(req.error);
+  });
+}
+
+function uid() { return Date.now().toString(36) + Math.random().toString(36).slice(2, 6); }
+
+function dbGet(store, key) {
+  return new Promise((res, rej) => {
+    const tx = db.transaction(store, 'readonly');
+    const req = tx.objectStore(store).get(key);
+    req.onsuccess = () => res(req.result);
+    req.onerror = () => rej(req.error);
+  });
+}
+
+function dbGetAll(store) {
+  return new Promise((res, rej) => {
+    const tx = db.transaction(store, 'readonly');
+    const req = tx.objectStore(store).getAll();
+    req.onsuccess = () => res(req.result);
+    req.onerror = () => rej(req.error);
+  });
+}
+
+function dbGetByIndex(store, index, value) {
+  return new Promise((res, rej) => {
+    const tx = db.transaction(store, 'readonly');
+    const req = tx.objectStore(store).index(index).getAll(value);
+    req.onsuccess = () => res(req.result);
+    req.onerror = () => rej(req.error);
+  });
+}
+
+function dbPut(store, obj) {
+  return new Promise((res, rej) => {
+    const tx = db.transaction(store, 'readwrite');
+    const req = tx.objectStore(store).put(obj);
+    req.onsuccess = () => res(req.result);
+    req.onerror = () => rej(req.error);
+  });
+}
+
+function dbDelete(store, key) {
+  return new Promise((res, rej) => {
+    const tx = db.transaction(store, 'readwrite');
+    const req = tx.objectStore(store).delete(key);
+    req.onsuccess = () => res();
+    req.onerror = () => rej(req.error);
+  });
+}
+
+// ══════════════════════════════════════════════════════════════════════════
+// STATE
+// ══════════════════════════════════════════════════════════════════════════
+let state = { projetoId: null, quadroId: null, consumidorId: null };
+
+// ══════════════════════════════════════════════════════════════════════════
+// NAVIGATION
+// ══════════════════════════════════════════════════════════════════════════
+function go(screenId) {
+  document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+  document.getElementById(screenId).classList.add('active');
+  // scroll top
+  const scroll = document.querySelector(`#${screenId} .scroll`);
+  if (scroll) scroll.scrollTop = 0;
+}
+
+function goTab(screenId, tab) { go(screenId); }
+
+// ══════════════════════════════════════════════════════════════════════════
+// MODALS
+// ══════════════════════════════════════════════════════════════════════════
+function openModal(id) {
+  document.getElementById(id).classList.add('open');
+  // Set today's date on project modal
+  if (id === 'modal-novo-proj') {
+    const d = new Date().toISOString().slice(0,10);
+    document.getElementById('np-data').value = d;
+  }
+}
+function closeModal(id) { document.getElementById(id).classList.remove('open'); }
+function closeModalOnBg(e, id) { if (e.target.id === id) closeModal(id); }
+
+// ══════════════════════════════════════════════════════════════════════════
+// TOAST
+// ══════════════════════════════════════════════════════════════════════════
+let toastTimer;
+function showToast(msg) {
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.classList.add('show');
+  clearTimeout(toastTimer);
+  toastTimer = setTimeout(() => t.classList.remove('show'), 2400);
+}
+function showAlert(msg) { showToast(msg); }
+
+// ══════════════════════════════════════════════════════════════════════════
+// CALC HELPERS
+// ══════════════════════════════════════════════════════════════════════════
+function calcKVA(fases, vff, vfn, potVA) {
+  const p = parseFloat(potVA) || 0;
+  if (fases === 'Trifásico') return Math.round(p * 100) / 100;
+  return p;
+}
+
+function calcIProj(fases, vff, vfn, potVA, fd) {
+  const p = (parseFloat(potVA) || 0) * (parseFloat(fd) || 1);
+  const vFF = parseFloat(vff) || 220;
+  const vFN = parseFloat(vfn) || 127;
+  if (fases === 'Trifásico') return p / (Math.sqrt(3) * vFF);
+  if (fases === 'Bifásico')  return p / vFF;
+  return p / vFN;
+}
+
+function calcKVAQuadro(fases, vff, ient) {
+  const v = parseFloat(vff) || 220;
+  const i = parseFloat(ient) || 0;
+  if (fases === 'Trifásico') return Math.sqrt(3) * v * i / 1000;
+  return v * i / 1000;
+}
+
+function pctClass(pct) {
+  if (pct >= 95) return 'prog-red';
+  if (pct >= 80) return 'prog-amber';
+  return 'prog-green';
+}
+
+function statusTag(pct) {
+  if (pct >= 95) return '<span class="tag tag-red">🔴 Crítico</span>';
+  if (pct >= 80) return '<span class="tag tag-amber">🟡 Atenção</span>';
+  return '<span class="tag tag-green">🟢 OK</span>';
+}
+
+function deseqAlert(ir, is, it) {
+  const vals = [ir, is, it].map(Number).filter(v => v > 0);
+  if (vals.length < 3) return null;
+  const avg = vals.reduce((a,b)=>a+b,0)/3;
+  const deseq = (Math.max(...vals)-Math.min(...vals))/avg;
+  if (deseq > 0.1) return `Desequilíbrio de fase: ${(deseq*100).toFixed(1)}% (limite NBR: 10%)`;
+  return null;
+}
+
+// ══════════════════════════════════════════════════════════════════════════
+// GAUGE SVG
+// ══════════════════════════════════════════════════════════════════════════
+function drawGauge(svgId, pct, label) {
+  const svg = document.getElementById(svgId);
+  if (!svg) return;
+  const r = 52, cx = 70, cy = 70;
+  const circ = 2 * Math.PI * r;
+  const fill = (pct/100) * circ;
+  const color = pct >= 95 ? '#f06060' : pct >= 80 ? '#e9a430' : '#3dcf8e';
+  svg.innerHTML = `
+    <circle cx="${cx}" cy="${cy}" r="${r}" fill="none" stroke="#1e1e2a" stroke-width="10"/>
+    <circle cx="${cx}" cy="${cy}" r="${r}" fill="none" stroke="${color}" stroke-width="10"
+      stroke-dasharray="${fill.toFixed(1)} ${circ.toFixed(1)}" stroke-dashoffset="${(circ*0.25).toFixed(1)}"
+      stroke-linecap="round" transform="rotate(-90 ${cx} ${cy})"/>
+    <text x="${cx}" y="${cy-6}" text-anchor="middle" font-size="22" font-weight="700" fill="#e8e8f0" font-family="-apple-system,sans-serif">${pct.toFixed(0)}%</text>
+    <text x="${cx}" y="${cy+14}" text-anchor="middle" font-size="11" fill="#555565" font-family="-apple-system,sans-serif">${label}</text>`;
+}
+
+// ══════════════════════════════════════════════════════════════════════════
+// HOME SCREEN
+// ══════════════════════════════════════════════════════════════════════════
+async function renderHome() {
+  const projetos = await dbGetAll('projetos');
+  projetos.sort((a,b) => b.criadoEm - a.criadoEm);
+  const list = document.getElementById('proj-list');
+
+  if (projetos.length === 0) {
+    list.innerHTML = `<div class="empty"><div class="empty-icon">📁</div><div class="empty-title">Nenhum projeto ainda</div><div class="empty-sub">Toque em + para criar seu primeiro projeto</div></div>`;
+    document.getElementById('home-stats').style.display = 'none';
+    return;
+  }
+
+  list.innerHTML = projetos.map(p => {
+    const statusClass = p.status === 'Concluído' ? 'tag-green' : p.status === 'Agendado' ? 'tag-purple' : 'tag-amber';
+    const data = p.data ? new Date(p.data+'T00:00:00').toLocaleDateString('pt-BR') : '—';
+    return `<div class="card" onclick="abrirProjeto('${p.id}')">
+      <div class="card-row">
+        <div class="card-icon" style="background:#142040"><i class="ti ti-bolt" style="color:#5b9cf6;font-size:22px"></i></div>
+        <div class="card-body">
+          <div class="card-label">${esc(p.nome)}</div>
+          <div class="card-sub">${esc(p.cliente)} · ${esc(p.site)}</div>
+        </div>
+        <div class="card-right">
+          <div class="tag ${statusClass}">${esc(p.status||'Em andamento')}</div>
+          <div style="font-size:10px;color:#444455;margin-top:4px;">${data}</div>
+        </div>
+      </div>
+    </div>`;
+  }).join('');
+
+  // Stats
+  const todos_quad = await dbGetAll('quadros');
+  const todos_cons = await dbGetAll('consumidores');
+  document.getElementById('home-stats').style.display = '';
+  document.getElementById('home-metrics').innerHTML = `
+    <div class="metric-card"><div class="metric-label">Projetos</div><div class="metric-value">${projetos.length}</div></div>
+    <div class="metric-card"><div class="metric-label">Quadros</div><div class="metric-value">${todos_quad.length}</div></div>
+    <div class="metric-card"><div class="metric-label">Consumidores</div><div class="metric-value">${todos_cons.length}</div></div>
+    <div class="metric-card"><div class="metric-label">Concluídos</div><div class="metric-value" style="color:#3dcf8e;">${projetos.filter(p=>p.status==='Concluído').length}</div></div>`;
+}
+
+// ══════════════════════════════════════════════════════════════════════════
+// PROJETO
+// ══════════════════════════════════════════════════════════════════════════
+async function abrirProjeto(id) {
+  state.projetoId = id;
+  const proj = await dbGet('projetos', id);
+  if (!proj) return;
+
+  document.getElementById('proj-nav-title').textContent = proj.nome;
+  document.getElementById('proj-subtitle').textContent =
+    `${proj.cliente} · ${proj.site} · ${proj.tecnico||''} · ${proj.data ? new Date(proj.data+'T00:00:00').toLocaleDateString('pt-BR') : ''}`;
+
+  const quadros = await dbGetByIndex('quadros', 'projetoId', id);
+
+  // Métricas agregadas
+  let totalKVA = 0, totalAlertas = 0;
+  for (const q of quadros) {
+    const kva = calcKVAQuadro(q.fases, q.vff, q.ient);
+    totalKVA += kva;
+    const pct = q.dj ? (parseFloat(q.ient)||0) / parseFloat(q.dj) * 100 : 0;
+    if (pct >= 80) totalAlertas++;
+  }
+
+  document.getElementById('proj-metrics').innerHTML = `
+    <div class="metric-card"><div class="metric-label">Carga total</div><div class="metric-value">${totalKVA.toFixed(1)}<span class="metric-unit"> kVA</span></div></div>
+    <div class="metric-card"><div class="metric-label">Quadros</div><div class="metric-value">${quadros.length}</div></div>
+    <div class="metric-card"><div class="metric-label">Alertas</div><div class="metric-value" style="color:${totalAlertas>0?'#e9a430':'#3dcf8e'}">${totalAlertas}</div></div>
+    <div class="metric-card"><div class="metric-label">Tipo</div><div class="metric-value" style="font-size:13px;margin-top:4px;">${esc(proj.tipo||'—')}</div></div>`;
+
+  // Alertas gerais
+  const alertsEl = document.getElementById('proj-alerts');
+  const alertsHtml = [];
+  for (const q of quadros) {
+    const pct = q.dj ? (parseFloat(q.ient)||0)/parseFloat(q.dj)*100 : 0;
+    if (pct >= 80) alertsHtml.push(`<div class="alert ${pct>=95?'alert-danger':'alert-warn'}"><div class="alert-icon">${pct>=95?'🔴':'⚠️'}</div><div class="alert-body"><div class="alert-title" style="color:${pct>=95?'#f06060':'#e9a430'}">${esc(q.nome)}</div><div class="alert-text">Corrente de entrada ${parseFloat(q.ient).toFixed(1)} A = ${pct.toFixed(0)}% do DJ ${q.dj} A</div></div></div>`);
+    const d = deseqAlert(q.ir, q.is, q.it);
+    if (d) alertsHtml.push(`<div class="alert alert-warn"><div class="alert-icon">⚠️</div><div class="alert-body"><div class="alert-title" style="color:#e9a430">${esc(q.nome)}</div><div class="alert-text">${d}</div></div></div>`);
+  }
+  alertsEl.innerHTML = alertsHtml.length ? `<div class="sec-hdr">Alertas</div>${alertsHtml.join('')}` : '';
+
+  // Lista de quadros
+  const quadEl = document.getElementById('quad-list');
+  if (quadros.length === 0) {
+    quadEl.innerHTML = `<div class="empty"><div class="empty-icon">⚡</div><div class="empty-title">Nenhum quadro cadastrado</div><div class="empty-sub">Toque em "Novo quadro" para começar</div></div>`;
+  } else {
+    quadEl.innerHTML = quadros.map(q => {
+      const pct = q.dj ? (parseFloat(q.ient)||0)/parseFloat(q.dj)*100 : 0;
+      const pc = pctClass(pct);
+      return `<div class="card" onclick="abrirQuadro('${q.id}')">
+        <div class="card-row">
+          <div class="card-icon" style="background:#142040"><i class="ti ti-layout-board" style="color:#5b9cf6;font-size:20px"></i></div>
+          <div class="card-body">
+            <div class="card-label">${esc(q.nome)}</div>
+            <div class="card-sub">${q.tipo} · ${q.fases} · ${q.vff||'—'}V</div>
+          </div>
+          <div class="card-right">
+            ${statusTag(pct)}
+            <div style="font-size:10px;color:#555565;margin-top:4px;">DJ ${q.dj||'—'}A</div>
+          </div>
+        </div>
+        <div class="prog-wrap">
+          <div class="prog-label"><span>${(parseFloat(q.ient)||0).toFixed(1)} A entrada</span><span>${pct.toFixed(0)}%</span></div>
+          <div class="prog-bar"><div class="prog-fill ${pc}" style="width:${Math.min(pct,100)}%"></div></div>
+        </div>
+      </div>`;
+    }).join('');
+  }
+  go('s-projeto');
+}
+
+// ══════════════════════════════════════════════════════════════════════════
+// QUADRO
+// ══════════════════════════════════════════════════════════════════════════
+async function abrirQuadro(id) {
+  state.quadroId = id;
+  const q = await dbGet('quadros', id);
+  if (!q) return;
+
+  document.getElementById('quad-nav-title').textContent = q.nome;
+
+  const ient = parseFloat(q.ient) || 0;
+  const dj = parseFloat(q.dj) || 1;
+  const pct = (ient/dj)*100;
+  const kva = calcKVAQuadro(q.fases, q.vff, q.ient);
+
+  drawGauge('quad-gauge', Math.min(pct, 100), 'ocupação DJ');
+
+  document.getElementById('quad-metrics').innerHTML = `
+    <div class="metric-card"><div class="metric-label">I entrada</div><div class="metric-value">${ient.toFixed(1)}<span class="metric-unit"> A</span></div></div>
+    <div class="metric-card"><div class="metric-label">DJ geral</div><div class="metric-value">${dj}<span class="metric-unit"> A</span></div></div>
+    <div class="metric-card"><div class="metric-label">Carga</div><div class="metric-value">${kva.toFixed(2)}<span class="metric-unit"> kVA</span></div></div>
+    <div class="metric-card"><div class="metric-label">80% DJ</div><div class="metric-value">${(dj*0.8).toFixed(0)}<span class="metric-unit"> A</span></div></div>`;
+
+  // Alertas
+  const alertsEl = document.getElementById('quad-alerts');
+  const al = [];
+  if (pct >= 95) al.push(`<div class="alert alert-danger"><div class="alert-icon">🔴</div><div class="alert-body"><div class="alert-title text-danger">Sobrecarga iminente</div><div class="alert-text">Corrente de ${ient.toFixed(1)} A = ${pct.toFixed(0)}% do DJ ${dj} A. Substituir por DJ de maior capacidade.</div></div></div>`);
+  else if (pct >= 80) al.push(`<div class="alert alert-warn"><div class="alert-icon">⚠️</div><div class="alert-body"><div class="alert-title text-amber">Atenção: acima de 80%</div><div class="alert-text">Corrente de ${ient.toFixed(1)} A = ${pct.toFixed(0)}% do DJ ${dj} A.</div></div></div>`);
+  const d = deseqAlert(q.ir, q.is, q.it);
+  if (d) al.push(`<div class="alert alert-warn"><div class="alert-icon">⚠️</div><div class="alert-body"><div class="alert-title text-amber">Desequilíbrio de fases</div><div class="alert-text">${d}</div></div></div>`);
+  const neutro = parseFloat(q.in) || 0;
+  const avgFase = ([parseFloat(q.ir)||0,parseFloat(q.is)||0,parseFloat(q.it)||0].reduce((a,b)=>a+b,0))/3;
+  if (neutro > 0 && avgFase > 0 && neutro > avgFase*1.5) al.push(`<div class="alert alert-danger"><div class="alert-icon">🔴</div><div class="alert-body"><div class="alert-title text-danger">Neutro sobrecarregado</div><div class="alert-text">Neutro ${neutro.toFixed(2)} A vs. média de fase ${avgFase.toFixed(2)} A. Verificar cargas monofásicas.</div></div></div>`);
+  alertsEl.innerHTML = al.join('');
+
+  // Fases
+  const phases = document.getElementById('quad-phases');
+  if (q.fases === 'Trifásico' || q.fases === 'Bifásico') {
+    const maxI = Math.max(parseFloat(q.ir)||0, parseFloat(q.is)||0, parseFloat(q.it)||0, 0.1);
+    const phaseRows = [
+      {lbl:'R', val: parseFloat(q.ir)||0, color:'#5b9cf6'},
+      {lbl:'S', val: parseFloat(q.is)||0, color:'#9b7ef0'},
+      {lbl:'T', val: parseFloat(q.it)||0, color:'#3dcf8e'},
+      {lbl:'N', val: parseFloat(q.in)||0, color:'#e9a430'},
+    ];
+    phases.innerHTML = phaseRows.map(ph => `
+      <div class="phase-row">
+        <div class="phase-badge" style="color:${ph.color}">${ph.lbl}</div>
+        <div>
+          <div class="prog-bar"><div class="prog-fill" style="width:${Math.min((ph.val/maxI)*100,100)}%;background:${ph.color}"></div></div>
+        </div>
+        <div style="font-size:13px;font-weight:600;color:${ph.color};text-align:right">${ph.val.toFixed(2)} A</div>
+      </div>`).join('');
+  } else {
+    phases.innerHTML = `<div style="text-align:center;color:#555565;font-size:13px;padding:8px 0;">Monofásico — fase única</div>`;
+  }
+
+  // Consumidores
+  const cons = await dbGetByIndex('consumidores', 'quadroId', id);
+  const consEl = document.getElementById('cons-list');
+  if (cons.length === 0) {
+    consEl.innerHTML = `<div class="empty"><div class="empty-icon">🔌</div><div class="empty-title">Nenhum consumidor</div><div class="empty-sub">Adicione os equipamentos conectados a este quadro</div></div>`;
+  } else {
+    const icons = {'Retificador / Telco':'ti-device-desktop','Ar-condicionado':'ti-wind','Nobreak / UPS':'ti-battery-charging','Banco de baterias':'ti-battery-4','Iluminação':'ti-bulb','Tomadas':'ti-plug','Servidor':'ti-server','Outro':'ti-plug-connected'};
+    const colors = {'Retificador / Telco':'#3dcf8e','Ar-condicionado':'#9b7ef0','Nobreak / UPS':'#5b9cf6','Banco de baterias':'#e9a430','Iluminação':'#f5c518','Tomadas':'#888','Servidor':'#5b9cf6','Outro':'#888'};
+    consEl.innerHTML = cons.map(c => {
+      const ip = calcIProj(c.fases, c.tensao, c.tensao/Math.sqrt(3), c.pot, c.fd);
+      const iMed = parseFloat(c.imed)||ip;
+      const djC = parseFloat(c.dj)||1;
+      const pctC = (iMed/djC)*100;
+      const icon = icons[c.tipo]||'ti-plug-connected';
+      const color = colors[c.tipo]||'#888';
+      const bg = color+'22';
+      const kvaC = (parseFloat(c.pot)||0)*(parseFloat(c.fd)||1)/1000;
+      return `<div class="card" onclick="abrirConsumidor('${c.id}')">
+        <div class="card-row">
+          <div class="card-icon" style="background:${bg}"><i class="ti ${icon}" style="color:${color};font-size:20px"></i></div>
+          <div class="card-body">
+            <div class="card-label">${esc(c.nome)}</div>
+            <div class="card-sub">${c.tipo} · ${c.fases} · ${kvaC.toFixed(2)} kVA</div>
+          </div>
+          <div class="card-right">
+            <div style="font-size:14px;font-weight:600;color:#e8e8f0">${iMed.toFixed(1)} A</div>
+            <div style="font-size:10px;color:#555565">DJ ${c.dj||'—'}A</div>
+          </div>
+        </div>
+        ${pctC >= 80 ? `<div class="prog-wrap"><div class="prog-bar"><div class="prog-fill ${pctClass(pctC)}" style="width:${Math.min(pctC,100)}%"></div></div></div>` : ''}
+      </div>`;
+    }).join('');
+  }
+
+  go('s-quadro');
+}
+
+// ══════════════════════════════════════════════════════════════════════════
+// CONSUMIDOR
+// ══════════════════════════════════════════════════════════════════════════
+async function abrirConsumidor(id) {
+  state.consumidorId = id;
+  const c = await dbGet('consumidores', id);
+  if (!c) return;
+
+  document.getElementById('cons-nav-title').textContent = c.nome;
+
+  const vff = parseFloat(c.tensao) || 220;
+  const vfn = vff / Math.sqrt(3);
+  const pot = parseFloat(c.pot) || 0;
+  const fd = parseFloat(c.fd) || 1;
+  const djC = parseFloat(c.dj) || 1;
+  const cargaInst = pot * fd;
+  const ip = calcIProj(c.fases, vff, vfn, pot*fd, 1);
+  const iMed = parseFloat(c.imed) || ip;
+  const pctC = (iMed/djC)*100;
+  const kva = cargaInst/1000;
+
+  document.getElementById('cons-metrics').innerHTML = `
+    <div class="metric-card"><div class="metric-label">Carga instalada</div><div class="metric-value">${kva.toFixed(2)}<span class="metric-unit"> kVA</span></div></div>
+    <div class="metric-card"><div class="metric-label">I medida</div><div class="metric-value">${iMed.toFixed(1)}<span class="metric-unit"> A</span></div></div>
+    <div class="metric-card"><div class="metric-label">Tensão</div><div class="metric-value">${vff}<span class="metric-unit"> V</span></div></div>
+    <div class="metric-card"><div class="metric-label">DJ proteção</div><div class="metric-value">${c.dj||'—'}<span class="metric-unit"> A</span></div></div>`;
+
+  const formula = c.fases==='Trifásico' ? 'P = √3 × V × I' : 'P = V × I';
+  document.getElementById('cons-calc').innerHTML = `
+    <div class="calc-row"><span class="calc-lbl">Fórmula (${c.fases})</span><span class="calc-val">${formula}</span></div>
+    <div class="calc-row"><span class="calc-lbl">Corrente de projeto (NBR 5410)</span><span class="calc-val">${ip.toFixed(2)} A</span></div>
+    <div class="calc-row"><span class="calc-lbl">80% do disjuntor</span><span class="calc-val">${(djC*0.8).toFixed(1)} A</span></div>
+    <div class="calc-row"><span class="calc-lbl">Fator de demanda</span><span class="calc-val">${fd}</span></div>
+    <div class="calc-row"><span class="calc-lbl">Status</span>${statusTag(pctC)}</div>`;
+
+  const al = [];
+  if (pctC >= 95) al.push(`<div class="alert alert-danger"><div class="alert-icon">🔴</div><div class="alert-body"><div class="alert-title text-danger">Sobrecarga</div><div class="alert-text">Corrente medida ${iMed.toFixed(1)} A = ${pctC.toFixed(0)}% do DJ ${c.dj} A. Trocar por DJ maior.</div></div></div>`);
+  else if (pctC >= 80) al.push(`<div class="alert alert-warn"><div class="alert-icon">⚠️</div><div class="alert-body"><div class="alert-title text-amber">Atenção</div><div class="alert-text">Corrente de ${iMed.toFixed(1)} A corresponde a ${pctC.toFixed(0)}% do DJ. Monitorar.</div></div></div>`);
+  document.getElementById('cons-alerts-detail').innerHTML = al.join('');
+
+  document.getElementById('cons-info').innerHTML = `
+    <div class="table-row" style="grid-template-columns:1fr 1fr;">
+      <span class="t-name text-muted">Tipo</span><span class="t-val">${esc(c.tipo)}</span>
+    </div>
+    <div class="table-row" style="grid-template-columns:1fr 1fr;">
+      <span class="t-name text-muted">Fases</span><span class="t-val">${esc(c.fases)}</span>
+    </div>
+    <div class="table-row" style="grid-template-columns:1fr 1fr;">
+      <span class="t-name text-muted">Potência</span><span class="t-val">${pot.toLocaleString('pt-BR')} VA</span>
+    </div>
+    ${c.obs ? `<div class="table-row" style="grid-template-columns:1fr 1fr;"><span class="t-name text-muted">Obs.</span><span class="t-val" style="text-align:right;white-space:normal;line-height:1.4">${esc(c.obs)}</span></div>` : ''}`;
+
+  go('s-consumidor');
+}
+
+// ══════════════════════════════════════════════════════════════════════════
+// FORM: CALC HELPERS
+// ══════════════════════════════════════════════════════════════════════════
+function calcQuad() {
+  const fases = document.getElementById('nq-fases').value;
+  const vff = parseFloat(document.getElementById('nq-vff').value) || 220;
+  const ient = parseFloat(document.getElementById('nq-ient').value) || 0;
+  const dj = parseFloat(document.getElementById('nq-dj').value) || 0;
+  const calcEl = document.getElementById('nq-calc');
+  if (ient > 0) {
+    const kva = fases==='Trifásico' ? Math.sqrt(3)*vff*ient/1000 : vff*ient/1000;
+    const pct = dj > 0 ? (ient/dj*100) : 0;
+    document.getElementById('nq-calc-kva').textContent = kva.toFixed(2)+' kVA';
+    document.getElementById('nq-calc-pct').textContent = dj>0 ? pct.toFixed(0)+'%' : '—';
+    calcEl.style.display = '';
+  } else { calcEl.style.display = 'none'; }
+}
+
+function calcCons() {
+  const fases = document.getElementById('nc-fases').value;
+  const vff = parseFloat(document.getElementById('nc-tensao').value) || 220;
+  const pot = parseFloat(document.getElementById('nc-pot').value) || 0;
+  const fd = parseFloat(document.getElementById('nc-fd').value) || 1;
+  const dj = parseFloat(document.getElementById('nc-dj').value) || 0;
+  const imed = parseFloat(document.getElementById('nc-imed').value) || 0;
+  const calcEl = document.getElementById('nc-calc');
+
+  if (pot > 0 || imed > 0) {
+    const cargaInst = pot*fd;
+    const ip = fases==='Trifásico' ? cargaInst/(Math.sqrt(3)*vff) : cargaInst/vff;
+    const iRef = imed > 0 ? imed : ip;
+    const kva = cargaInst/1000;
+    const pct = dj>0 ? (iRef/dj*100) : 0;
+    document.getElementById('nc-calc-kva').textContent = kva.toFixed(3)+' kVA';
+    document.getElementById('nc-calc-ip').textContent = ip.toFixed(2)+' A';
+    document.getElementById('nc-calc-80').textContent = dj>0 ? (dj*0.8).toFixed(1)+' A' : '—';
+    document.getElementById('nc-calc-status').innerHTML = dj>0 ? statusTag(pct) : '—';
+    calcEl.style.display = '';
+  } else { calcEl.style.display = 'none'; }
+}
+
+function updateQuadFields() {
+  const fases = document.getElementById('nq-fases').value;
+  document.getElementById('nq-fase-fields').style.display = fases === 'Monofásico' ? 'none' : '';
+}
+
+// ══════════════════════════════════════════════════════════════════════════
+// SAVE: PROJETO
+// ══════════════════════════════════════════════════════════════════════════
+async function salvarProjeto() {
+  const nome = document.getElementById('np-nome').value.trim();
+  const cliente = document.getElementById('np-cliente').value.trim();
+  const site = document.getElementById('np-site').value.trim();
+  if (!nome || !cliente || !site) { showToast('Preencha cliente, site e nome'); return; }
+
+  const proj = {
+    id: uid(), nome, cliente, site,
+    data: document.getElementById('np-data').value,
+    tecnico: document.getElementById('np-tec').value.trim(),
+    tipo: document.getElementById('np-tipo').value,
+    obs: document.getElementById('np-obs').value.trim(),
+    status: 'Em andamento',
+    criadoEm: Date.now()
+  };
+  await dbPut('projetos', proj);
+  closeModal('modal-novo-proj');
+  // reset
+  ['np-nome','np-cliente','np-site','np-tec','np-obs'].forEach(id => document.getElementById(id).value = '');
+  showToast('Projeto criado ✓');
+  await renderHome();
+  await abrirProjeto(proj.id);
+}
+
+// ══════════════════════════════════════════════════════════════════════════
+// SAVE: QUADRO
+// ══════════════════════════════════════════════════════════════════════════
+async function salvarQuadro() {
+  const nome = document.getElementById('nq-nome').value.trim();
+  if (!nome) { showToast('Informe o nome do quadro'); return; }
+
+  const quadro = {
+    id: uid(), projetoId: state.projetoId,
+    nome, tipo: document.getElementById('nq-tipo').value,
+    fases: document.getElementById('nq-fases').value,
+    vfn: document.getElementById('nq-vfn').value,
+    vff: document.getElementById('nq-vff').value,
+    dj: document.getElementById('nq-dj').value,
+    ient: document.getElementById('nq-ient').value,
+    ir: document.getElementById('nq-ir').value,
+    is: document.getElementById('nq-is').value,
+    it: document.getElementById('nq-it').value,
+    in: document.getElementById('nq-in').value,
+    obs: document.getElementById('nq-obs').value.trim(),
+    criadoEm: Date.now()
+  };
+  await dbPut('quadros', quadro);
+  closeModal('modal-novo-quad');
+  ['nq-nome','nq-vfn','nq-vff','nq-dj','nq-ient','nq-ir','nq-is','nq-it','nq-in','nq-obs'].forEach(id => document.getElementById(id).value = '');
+  document.getElementById('nq-calc').style.display = 'none';
+  showToast('Quadro salvo ✓');
+  await abrirProjeto(state.projetoId);
+}
+
+// ══════════════════════════════════════════════════════════════════════════
+// SAVE: CONSUMIDOR
+// ══════════════════════════════════════════════════════════════════════════
+async function salvarConsumidor() {
+  const nome = document.getElementById('nc-nome').value.trim();
+  if (!nome) { showToast('Informe o nome do consumidor'); return; }
+
+  const cons = {
+    id: uid(), quadroId: state.quadroId,
+    nome, tipo: document.getElementById('nc-tipo').value,
+    fases: document.getElementById('nc-fases').value,
+    tensao: document.getElementById('nc-tensao').value,
+    pot: document.getElementById('nc-pot').value,
+    imed: document.getElementById('nc-imed').value,
+    dj: document.getElementById('nc-dj').value,
+    fd: document.getElementById('nc-fd').value || '1',
+    obs: document.getElementById('nc-obs').value.trim(),
+    criadoEm: Date.now()
+  };
+  await dbPut('consumidores', cons);
+  closeModal('modal-novo-cons');
+  ['nc-nome','nc-tensao','nc-pot','nc-imed','nc-dj','nc-obs'].forEach(id => document.getElementById(id).value = '');
+  document.getElementById('nc-fd').value = '1';
+  document.getElementById('nc-calc').style.display = 'none';
+  showToast('Consumidor salvo ✓');
+  await abrirQuadro(state.quadroId);
+}
+
+// ══════════════════════════════════════════════════════════════════════════
+// DELETE
+// ══════════════════════════════════════════════════════════════════════════
+async function deleteCurrentQuadro() {
+  if (!confirm('Excluir este quadro e todos os consumidores?')) return;
+  const cons = await dbGetByIndex('consumidores', 'quadroId', state.quadroId);
+  for (const c of cons) await dbDelete('consumidores', c.id);
+  await dbDelete('quadros', state.quadroId);
+  showToast('Quadro excluído');
+  await abrirProjeto(state.projetoId);
+}
+
+async function deleteCurrentCons() {
+  if (!confirm('Excluir este consumidor?')) return;
+  await dbDelete('consumidores', state.consumidorId);
+  showToast('Consumidor excluído');
+  await abrirQuadro(state.quadroId);
+}
+
+// ══════════════════════════════════════════════════════════════════════════
+// RELATÓRIO
+// ══════════════════════════════════════════════════════════════════════════
+async function openRelatorio() {
+  const proj = await dbGet('projetos', state.projetoId);
+  const quadros = await dbGetByIndex('quadros', 'projetoId', state.projetoId);
+
+  // Header
+  document.getElementById('rel-header').innerHTML = `
+    <div class="card no-tap">
+      <div style="font-size:16px;font-weight:700;color:#e8e8f0;margin-bottom:4px;">Relatório de Vistoria</div>
+      <div style="font-size:12px;color:#555565;line-height:1.8;">
+        <b style="color:#888">Projeto:</b> ${esc(proj.nome)}<br>
+        <b style="color:#888">Cliente:</b> ${esc(proj.cliente)} · <b style="color:#888">Site:</b> ${esc(proj.site)}<br>
+        <b style="color:#888">Data:</b> ${proj.data ? new Date(proj.data+'T00:00:00').toLocaleDateString('pt-BR') : '—'} · <b style="color:#888">Técnico:</b> ${esc(proj.tecnico||'—')}
+      </div>
+    </div>`;
+
+  // Tabela de cargas
+  let tabelaHtml = `<div class="card no-tap" style="overflow-x:auto;"><table style="width:100%;border-collapse:collapse;font-size:11px;">
+    <thead><tr style="border-bottom:1px solid #2a2a3a;">
+      <th style="text-align:left;color:#444;padding:6px 4px;font-weight:600;">Quadro</th>
+      <th style="text-align:left;color:#444;padding:6px 4px;font-weight:600;">Carga</th>
+      <th style="text-align:right;color:#444;padding:6px 4px;font-weight:600;">VA</th>
+      <th style="text-align:right;color:#444;padding:6px 4px;font-weight:600;">I(A)</th>
+      <th style="text-align:right;color:#444;padding:6px 4px;font-weight:600;">DJ</th>
+      <th style="text-align:center;color:#444;padding:6px 4px;font-weight:600;">Status</th>
+    </tr></thead><tbody>`;
+
+  let totalVA = 0;
+  const alertasRel = [];
+
+  for (const q of quadros) {
+    const cons = await dbGetByIndex('consumidores', 'quadroId', q.id);
+    const ient = parseFloat(q.ient)||0;
+    const djQ = parseFloat(q.dj)||1;
+    const pctQ = (ient/djQ)*100;
+    tabelaHtml += `<tr style="border-bottom:0.5px solid #1a1a26;background:#0e0e18;">
+      <td colspan="6" style="padding:6px 4px;font-weight:600;color:#5b9cf6;font-size:10px;">${esc(q.nome)} · ${q.tipo} · ${q.fases} · DJ ${q.dj}A</td></tr>`;
+
+    for (const c of cons) {
+      const pot = parseFloat(c.pot)||0;
+      const fd = parseFloat(c.fd)||1;
+      const cargaInst = pot*fd;
+      const ip = calcIProj(c.fases, parseFloat(c.tensao)||220, 127, cargaInst, 1);
+      const iMed = parseFloat(c.imed)||ip;
+      const djC = parseFloat(c.dj)||1;
+      const pctC = (iMed/djC)*100;
+      totalVA += cargaInst;
+      const statCell = pctC>=95?'<span style="color:#f06060">🔴</span>':pctC>=80?'<span style="color:#e9a430">🟡</span>':'<span style="color:#3dcf8e">🟢</span>';
+      tabelaHtml += `<tr style="border-bottom:0.5px solid #1a1a26;">
+        <td style="padding:5px 4px;color:#888;font-size:10px;">&nbsp;&nbsp;↳ ${esc(q.nome)}</td>
+        <td style="padding:5px 4px;color:#c0c0cc;font-size:11px;">${esc(c.nome)}</td>
+        <td style="padding:5px 4px;text-align:right;color:#c0c0cc;">${cargaInst.toLocaleString('pt-BR')}</td>
+        <td style="padding:5px 4px;text-align:right;color:#c0c0cc;">${iMed.toFixed(1)}</td>
+        <td style="padding:5px 4px;text-align:right;color:#c0c0cc;">${c.dj||'—'}A</td>
+        <td style="padding:5px 4px;text-align:center;">${statCell}</td></tr>`;
+      if (pctC>=80) alertasRel.push({tipo: pctC>=95?'danger':'warn', msg:`${q.nome} → ${c.nome}: ${iMed.toFixed(1)} A sobre DJ ${c.dj} A (${pctC.toFixed(0)}%)`});
+    }
+
+    if (pctQ>=80) alertasRel.push({tipo: pctQ>=95?'danger':'warn', msg:`${q.nome}: entrada ${ient.toFixed(1)} A = ${pctQ.toFixed(0)}% do DJ geral ${q.dj} A`});
+    const d = deseqAlert(q.ir, q.is, q.it);
+    if (d) alertasRel.push({tipo:'warn', msg:`${q.nome}: ${d}`});
+  }
+
+  tabelaHtml += `<tr style="border-top:1px solid #2a2a3a;">
+    <td colspan="2" style="padding:7px 4px;font-weight:700;color:#e8e8f0;">TOTAL INSTALADO</td>
+    <td style="padding:7px 4px;text-align:right;font-weight:700;color:#5b9cf6;">${totalVA.toLocaleString('pt-BR')}</td>
+    <td colspan="3"></td></tr></tbody></table></div>`;
+
+  document.getElementById('rel-tabela').innerHTML = tabelaHtml;
+
+  // Alertas
+  document.getElementById('rel-alertas').innerHTML = alertasRel.length
+    ? alertasRel.map(a=>`<div class="alert alert-${a.tipo==='danger'?'danger':'warn'}"><div class="alert-icon">${a.tipo==='danger'?'🔴':'⚠️'}</div><div class="alert-text">${esc(a.msg)}</div></div>`).join('')
+    : `<div class="alert alert-info"><div class="alert-icon">✅</div><div class="alert-text">Nenhum alerta crítico detectado neste projeto.</div></div>`;
+
+  go('s-relatorio');
+}
+
+// ══════════════════════════════════════════════════════════════════════════
+// EXPORT CSV
+// ══════════════════════════════════════════════════════════════════════════
+async function exportCSV() {
+  const proj = await dbGet('projetos', state.projetoId);
+  const quadros = await dbGetByIndex('quadros', 'projetoId', state.projetoId);
+  let rows = [['Projeto','Cliente','Site','Quadro','Tipo Quadro','Carga','Tipo Equip','Fases','Tensão(V)','Potência(VA)','FD','Carga Inst(VA)','I Medida(A)','I Projeto(A)','DJ(A)','% DJ','Status']];
+  for (const q of quadros) {
+    const cons = await dbGetByIndex('consumidores', 'quadroId', q.id);
+    for (const c of cons) {
+      const pot = parseFloat(c.pot)||0; const fd = parseFloat(c.fd)||1;
+      const ci = pot*fd; const ip = calcIProj(c.fases, parseFloat(c.tensao)||220, 127, ci, 1);
+      const iMed = parseFloat(c.imed)||ip; const djC = parseFloat(c.dj)||1;
+      const pct = (iMed/djC*100).toFixed(0);
+      const stat = pct>=95?'CRÍTICO':pct>=80?'ATENÇÃO':'OK';
+      rows.push([proj.nome,proj.cliente,proj.site,q.nome,q.tipo,c.nome,c.tipo,c.fases,c.tensao,pot,fd,ci,iMed.toFixed(2),ip.toFixed(2),c.dj,pct+'%',stat]);
+    }
+  }
+  const csv = rows.map(r=>r.map(v=>`"${String(v).replace(/"/g,'""')}"`).join(',')).join('\n');
+  const blob = new Blob(['\ufeff'+csv], {type:'text/csv;charset=utf-8'});
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a'); a.href = url;
+  a.download = `vistoria_${proj.cliente}_${proj.site}_${new Date().toISOString().slice(0,10)}.csv`;
+  a.click(); URL.revokeObjectURL(url);
+  showToast('CSV exportado ✓');
+}
+
+async function exportTXT() {
+  const proj = await dbGet('projetos', state.projetoId);
+  const quadros = await dbGetByIndex('quadros', 'projetoId', state.projetoId);
+  let txt = `MEMORIAL DE VISTORIA ELÉTRICA\n${'='.repeat(40)}\n`;
+  txt += `Projeto: ${proj.nome}\nCliente: ${proj.cliente}\nSite: ${proj.site}\n`;
+  txt += `Data: ${proj.data||'—'}  Técnico: ${proj.tecnico||'—'}\nTipo: ${proj.tipo||'—'}\n\n`;
+  for (const q of quadros) {
+    txt += `QUADRO: ${q.nome} (${q.tipo})\n${'-'.repeat(30)}\n`;
+    txt += `Fases: ${q.fases} | Tensão: ${q.vff}V | DJ Geral: ${q.dj}A | I entrada: ${q.ient}A\n`;
+    if (q.fases==='Trifásico') txt += `Fases R/S/T: ${q.ir}/${q.is}/${q.it} A | Neutro: ${q.in||0} A\n`;
+    const cons = await dbGetByIndex('consumidores', 'quadroId', q.id);
+    for (const c of cons) {
+      const pot = parseFloat(c.pot)||0; const fd = parseFloat(c.fd)||1;
+      const ip = calcIProj(c.fases, parseFloat(c.tensao)||220, 127, pot*fd, 1);
+      txt += `  • ${c.nome} (${c.tipo}): ${(pot*fd/1000).toFixed(2)} kVA | I=${parseFloat(c.imed)||ip.toFixed(2)} A | DJ ${c.dj}A\n`;
+    }
+    txt += '\n';
+  }
+  const blob = new Blob([txt], {type:'text/plain;charset=utf-8'});
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a'); a.href = url;
+  a.download = `memorial_${proj.cliente}_${proj.site}.txt`;
+  a.click(); URL.revokeObjectURL(url);
+  showToast('Memorial exportado ✓');
+}
+
+// ══════════════════════════════════════════════════════════════════════════
+// SETTINGS
+// ══════════════════════════════════════════════════════════════════════════
+function showSettings() { showToast('Config. em breve'); }
+
+// ══════════════════════════════════════════════════════════════════════════
+// UTILS
+// ══════════════════════════════════════════════════════════════════════════
+function esc(str) { return String(str||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
+
+// ══════════════════════════════════════════════════════════════════════════
+// INIT
+// ══════════════════════════════════════════════════════════════════════════
+async function init() {
+  await initDB();
+  await renderHome();
+  if ('serviceWorker' in navigator) {
+    navigator.serviceWorker.register('sw.js').catch(()=>{});
+  }
+}
+
+init();
+</script>
+</body>
+</html>
